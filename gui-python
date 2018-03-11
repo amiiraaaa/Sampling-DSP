@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Mar 11 13:42:04 2018
+
+@author: ameera
+"""
+import tkinter as tk
+from tkinter import *
+from tkinter import filedialog
+import numpy as np
+import matplotlib as mpl
+mpl.use("TkAgg")
+import csv  
+import matplotlib.pyplot as plt
+import matplotlib.pyplot
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg , NavigationToolbar2TkAgg
+from matplotlib.figure import Figure
+from matplotlib.backend_bases import key_press_handler
+from scipy import signal
+from scipy.signal import convolve2d
+import pyaudio
+
+window=Tk()  #creating window for GUI
+window.title("task 1  in python")   #rename GUI
+window.geometry("700x700")    #resize GUI
+Label1= Label(window, text="enter Filter Parameters") #creating  header
+Label1.pack()  #controlling geometry of label
+Label2=Label(window , text="filter Parameter 1")
+Label2.pack()
+textbox1 = Entry(window) #creating textbox 
+textbox1.pack()
+textbox1.delete(0, END) #clearing text box
+textbox1.insert(0, 0) #inserton cursor
+Label3=Label(window, text="filter Parameter 2")
+Label3.pack()
+textbox2 = Entry(window)
+textbox2.pack()
+textbox2.delete(0, END)
+textbox2.insert(0, 0)
+Label4=Label(window, text="filter Parameter 3")
+Label4.pack()
+textbox3= Entry(window)
+textbox3.pack()
+textbox3.delete(0, END)
+textbox3.insert(0, 0)
+def insert():
+    textbox1.update_idletasks()
+    textbox2.update_idletasks()
+    textbox3.update_idletasks() 
+filterbutton=Button(window,text="insert", command=insert)
+filterbutton.pack()
+def browsing():
+    
+    filename = filedialog.askopenfilename(filetypes=(("csv Files", "*.csv"),))  #ask  user to open file
+    f=open(filename, newline='')  #open the file
+    reader = csv.reader(f, delimiter=',', quotechar='|')  #read file as a list
+    results11=[]  #empty array to store data 
+    for row in reader: 
+        results11.append(row)
+    results1=np.array(results11)   #array of all data as string
+    results2 = results1[5:,:]   # slicing data to delete words which exist in file
+    results3= results2[:,1:].astype(np.float)  #convert data to float type
+    getNum = np.array([[float(textbox1.get()),float(textbox2.get()),float(textbox3.get())]])
+    filtered = convolve2d(results3,getNum,mode='same')
+    fig2=Figure(figsize=(5,5), dpi=100)
+    a2=fig2.add_subplot(111)
+    a2.plot(results2[0:51,0],filtered[0:51,0])
+    canvas=FigureCanvasTkAgg(fig2,window)
+    canvas.show()
+    canvas.get_tk_widget().pack()
+    toolbar=NavigationToolbar2TkAgg(canvas,window)
+    toolbar.update()
+    #canvas._tkcanvas().pack(side=TOP,fill=BOTH, expand=True)
+browsebutton=Button(window,text="browse", command=browsing)
+browsebutton.pack()
+def playing():
+    p=pyaudio.PyAudio()
+    
+    p=pyaudio.PyAudio()
+    volume = 0.5     # range [0.0, 1.0]
+    f=int (input("enter Sampling Freq. (fs) ="))
+    #fs = 44100   
+    
+    duration = 10.0   #sec.
+    f = 4000.0 
+    f1=5000.0
+    f2=2450.0
+    f3=2000.0       
+    
+    #definig type of sound , no of channels ,sampling freq and its type
+    stream = p.open(format=pyaudio.paFloat32,
+                channels=1,
+                rate=fs,
+                output=True)
+    a=(np.sin(np.pi*np.arange(fs*duration)*f/fs)).astype(np.float32)
+    b=(np.sin(5*np.pi*np.arange(fs*duration)*f1/fs)).astype(np.float32)
+    c=np.sin(3*np.pi*np.arange(fs*duration)*f2/fs).astype(np.float32)
+    d=np.exp(np.arange(fs*duration)*f3/fs).astype(np.float32)
+    #e=np.exp(2*np.arange(fs*duration)*f3/fs).astype(np.float32)
+    samples =(a+b+c)*(d)
+
+ 
+    stream.write(volume*samples)
+    stream.stop_stream()
+    stream.close()
+    p.terminate()  
+ playbutton =Button(window,text="play sound", command=playing)
+ playbutton.pack 
+    stream.write(volume*samples)
+    stream.stop_stream()
+    stream.close()
+    p.terminate()  
+playbutton=Button(window,text="play sound", command=playing)
+playbutton.pack()
+def sampling():
+    time_of_view        = 1.; # s.
+    analog_time         = np.linspace (0, time_of_view, 10e5); # s.
+    sampling_rate       = 20.; # Hz
+    sampling_period     = 1. / sampling_rate; # s
+    sample_number       = time_of_view / sampling_period;
+    sampling_time       = np.linspace (0, time_of_view, sample_number);
+    carrier_frequency   = 9.;
+    amplitude           = 1;
+    phase               = 0;
+    quantizing_bits     = 4;
+    quantizing_levels   = 2 ** quantizing_bits / 2;
+    quantizing_step     = 1. / quantizing_levels;
+
+    def analog_signal (time_point):
+        return amplitude * np.cos (2 * np.pi * carrier_frequency * time_point + phase);
+    sampling_signal     = analog_signal (sampling_time);
+    quantizing_signal   = np.round (sampling_signal / quantizing_step) * quantizing_step;
+    fig = plt.figure ()
+    plt.plot (analog_time,   analog_signal (analog_time) );
+    plt.stem (sampling_time, quantizing_signal, linefmt='r-', markerfmt='rs', basefmt='r-');
+    plt.title("signal samping")
+    plt.xlabel("Time")
+    plt.ylabel("Amplitude")
+    plt.show()
+    fig=Figure(figsize=(5,5), dpi=100)
+    a=fig.add_subplot(111)
+    a.plot(analog_time,analog_signal (analog_time))
+    canvas=FigureCanvasTkAgg(fig,window)
+    canvas.show()
+    canvas.get_tk_widget().pack(side=TOP,fill=BOTH, expand=True)
+    toolbar=NavigationToolbar2TkAgg(canvas,window)
+    toolbar.update()
+    canvas._tKcanvas.pack(side=TOP,fill=BOTH, expand=True)
+samplingbutton=Button(window,text="sample", command=sampling)
+samplingbutton.pack()
+window.mainloop()
